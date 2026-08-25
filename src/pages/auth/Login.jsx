@@ -47,7 +47,7 @@ export default function Login() {
           ? "/owner"
           : role.includes("ADMIN")
             ? "/admin"
-            : "/my-bookings");
+            : "/user");
 
       navigate(dest, { replace: true });
     } catch (err) {

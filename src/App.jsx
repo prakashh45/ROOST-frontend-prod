@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import Toasts from "./components/ui/Toasts";
 
+
 // Public pages
 import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
@@ -68,6 +69,10 @@ export default function App() {
         {/* =====================================================
             PROPERTY DISCOVERY
         ====================================================== */}
+<Route
+  path="/properties/login"
+  element={<Login />}
+/>
 
         <Route
           path="/properties"
@@ -79,14 +84,10 @@ export default function App() {
           element={<PropertyDetails />}
         />
 
-        <Route
-          path="/properties/:slug/availability"
-          element={
-            <ProtectedRoute roles={["GUEST"]}>
-              <BedAvailability />
-            </ProtectedRoute>
-          }
-        />
+       <Route
+  path="/properties/:slug/availability"
+  element={<BedAvailability />}
+/>
 
 
         {/* =====================================================

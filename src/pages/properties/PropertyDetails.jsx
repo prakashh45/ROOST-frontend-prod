@@ -16,37 +16,86 @@ const AMENITY_ICON = {
   "Fast Wi-Fi": Wifi, "Air conditioning": Snowflake, "Hot water": ShowerHead,
   "Parking": Car, "24/7 security": Lock, "Laundry": WashingMachine,
 };
-
 export default function PropertyDetails() {
-  const { slug } = useParams();
   const navigate = useNavigate();
+  const { slug } = useParams();
   const { favorites, toggleFavorite } = useAppState();
   const { setProperty } = useBooking();
   const [checkIn, setCheckIn] = useState("2026-09-03");
   const [checkOut, setCheckOut] = useState("2026-09-10");
 
-  const fallback = demoProperties.find((x) => x.slug === slug) || demoProperties[0];
-  const { data: property, loading, error } = useApi(
+  // Find fallback property using URL slug
+  const fallback =
+    demoProperties.find(
+      (p) => String(p.slug) === String(slug)
+    ) ||
+    demoProperties.find(
+      (p) => String(p.id) === String(slug)
+    ) ||
+    demoProperties[0];
+
+  // Load property from backend
+  const {
+    data: property,
+    loading,
+    error,
+  } = useApi(
     () => propertyApi.get(slug),
     fallback,
-    { deps: [slug], transform: (d) => d.property || d }
+    {
+      deps: [slug],
+      transform: (d) => d?.property || d,
+    }
   );
 
-  // Same /properties endpoint as Home's "Featured stays" rail and the
-  // Search grid — reused here, filtered to the same city, as a "Similar
-  // stays nearby" rail. One API, three different presentations.
-  const { data: allProperties } = useApi(() => propertyApi.list(), demoProperties, { deps: [] });
-  const similar = allProperties.filter((p) => p.slug !== slug).slice(0, 3);
+  // Load all properties for similar stays
+  const { data: allProperties } = useApi(
+    () => propertyApi.list(),
+    demoProperties,
+    {
+      deps: [],
+      transform: (d) =>
+        Array.isArray(d)
+          ? d
+          : Array.isArray(d?.properties)
+            ? d.properties
+            : demoProperties,
+    }
+  );
 
-  if (loading) return (<><Navbar /><LoadingState label="Loading property…" /></>);
+  const similar = (
+    Array.isArray(allProperties)
+      ? allProperties
+      : demoProperties
+  )
+    .filter(
+      (p) => String(p.slug) !== String(slug)
+    )
+    .slice(0, 3);
 
-  const price = property.price || property.startingPrice || 300;
-  const isFav = favorites.includes(property.slug);
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <LoadingState label="Loading property…" />
+      </>
+    );
+  }
+
+  const price =
+    property?.price ||
+    property?.startingPrice ||
+    300;
+
+  const isFav = favorites.includes(property?.slug);
 
   const goToAvailability = () => {
-    setProperty(property, checkIn, checkOut);
-    navigate(`/properties/${property.slug}/availability?checkIn=${checkIn}&checkOut=${checkOut}`);
-  };
+  setProperty(property, checkIn, checkOut);
+
+  navigate(
+    `/properties/${property.slug}/availability?checkIn=${checkIn}&checkOut=${checkOut}`
+  );
+};
 
   return (
     <>
